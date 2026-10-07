@@ -1,49 +1,31 @@
 # FeSoul
 
-Reproductor de música hecho en **TypeScript** con **listas doblemente enlazadas** (Taller Listas Dobles).
-
-## Cómo correrlo
-
-```bash
-npm install
-npm run dev
-```
-
-Abre el enlace que muestra la terminal (normalmente http://localhost:5173).
+Reproductor de música hecho en **TypeScript** con **listas doblemente enlazadas**. Proyecto del Taller Listas Dobles.
 
 ## Funcionalidades
 
 **Requisitos del taller**
-- Agregar canciones **al inicio**, **al final** y **en cualquier posición** (arrastrando con drag and drop, o soltando archivos del computador justo donde quieres).
-- **Eliminar** canciones (con opción de deshacer).
-- **Adelantar** (siguiente canción) y **retroceder** (canción anterior).
-- Canciones reales del computador: se eligen desde el sistema de archivos, nada quemado en el código.
+- Agregar canciones **al inicio**, **al final** y **en cualquier posición**: arrastrándolas con drag and drop, o soltando archivos del computador justo donde se quieren.
+- **Eliminar** canciones, con opción de deshacer.
+- **Adelantar** a la siguiente canción y **retroceder** a la anterior.
+- Canciones reales del computador, elegidas desde el sistema de archivos; nada quemado en el código.
 - Varias **playlists**: crear, renombrar, eliminar y cambiar entre ellas.
-- Reproducción real: play / pausa, barra de progreso, volumen y silencio.
+- Reproducción real: play, pausa, barra de progreso, volumen y silencio.
 
 **Extras**
-- **Búsqueda en YouTube** (YouTube Data API v3): busca canciones y agrégalas al inicio o al final. Se mezclan con tus archivos locales en la misma lista doble y suenan con el reproductor oficial de YouTube.
-- Lee las etiquetas del MP3 (título, artista, álbum y carátula). Si no tiene, usa el nombre del archivo (`Artista - Título.mp3`).
+- **Pantalla de inicio** con saludo personalizado, "Seguir escuchando", tarjetas de playlists y canciones escuchadas recientemente.
+- **Ver la lista doble**: muestra cada nodo con sus punteros `prev` y `next`, la cabeza (`head`), la cola (`tail`) y el nodo que suena (`current`), en vivo.
+- **Reproducir a continuación**: pone una canción justo después de la que está sonando.
+- **Invertir** la playlist y **ordenarla** por título, artista o duración (merge sort sobre los nodos), con opción de deshacer.
+- **Me gusta**: playlist automática con las canciones marcadas con el corazón.
+- **Búsqueda en YouTube** (YouTube Data API v3): las canciones de YouTube se mezclan con las locales en la misma lista doble.
+- Lee las etiquetas del MP3 (título, artista, álbum y carátula). Si no las tiene, usa el nombre del archivo (`Artista - Título.mp3`).
 - Aleatorio y repetir (toda la playlist o una canción).
-- Búsqueda dentro de la playlist (ignora tildes y mayúsculas).
-- Guarda todo en el navegador (IndexedDB): al recargar siguen tus playlists, el orden, el volumen y los modos.
-- Atajos de teclado: Espacio, Shift + ← / →, M, Alt + ↑ / ↓ para mover canciones.
-- Controles multimedia del sistema (teclas de música del teclado, pantalla de bloqueo del celular).
-- Diseño adaptable a celular, el drag and drop funciona con el dedo (desde el ícono ⋮⋮).
-
-## Configurar YouTube
-
-1. Entra a [Google Cloud Console](https://console.cloud.google.com/) y crea un proyecto.
-2. En **APIs y servicios → Biblioteca**, busca **YouTube Data API v3** y presiona **Habilitar**.
-3. En **Credenciales → Crear credenciales → Clave de API**, copia la clave.
-4. Recomendado: edita la clave y en **Restricciones de aplicaciones** elige *Sitios web* y agrega `http://localhost:5173/*` y la URL de tu despliegue (por ejemplo `https://fesoul.vercel.app/*`). En **Restricciones de API** deja solo *YouTube Data API v3*.
-5. Copia `.env.example` como `.env.local` y pega la clave:
-   ```
-   VITE_YOUTUBE_API_KEY=tu_clave
-   ```
-6. Reinicia `npm run dev`.
-
-La cuota gratis es de 10.000 unidades al día; cada búsqueda gasta unas 101 (unas 100 búsquedas diarias). Algunos videos no se pueden reproducir fuera de YouTube porque su dueño lo bloquea; la app avisa cuando pasa.
+- Búsqueda dentro de la playlist, sin importar tildes ni mayúsculas.
+- Guarda todo en el navegador (IndexedDB): al recargar siguen las playlists, el orden, el volumen y los modos.
+- Atajos de teclado: Espacio, Shift + ← / →, M, y Alt + ↑ / ↓ para mover canciones.
+- Controles multimedia del sistema, como las teclas de música del teclado o la pantalla de bloqueo del celular.
+- Diseño adaptable a celular; el drag and drop funciona con el dedo desde el ícono ⋮⋮.
 
 ## Estructura
 
@@ -66,22 +48,27 @@ src/
 │   └── songFactory.ts       Convierte archivos en canciones
 ├── storage/
 │   └── LibraryStorage.ts    Guardado en IndexedDB
-├── ui/                      Interfaz (App, drag and drop, diálogos, avisos)
+├── ui/                      Interfaz (App, drag and drop, diálogos, avisos, buscador)
 └── utils/format.ts          Formato de tiempos y textos
 ```
 
-### Ideas clave de la lista doble
-- **Adelantar / retroceder** solo sigue `current.next` o `current.prev`: O(1).
-- La playlist guarda un puntero al **nodo** que suena, no a un número de posición. Por eso, si se reordena con drag and drop, la siguiente canción siempre sale del orden nuevo.
+## Operaciones de la lista doble
+
+| Operación | Uso en el reproductor | Complejidad |
+|---|---|---|
+| `addFirst` / `addLast` | Agregar al inicio / al final | O(1) |
+| `addAt` | Agregar en una posición | O(n) |
+| `insertAfter` | Agregar a continuación de la que suena | O(1) |
+| `remove` | Eliminar una canción | O(1) con el nodo |
+| `move` / `moveAfter` | Drag and drop / reproducir a continuación | O(n) / O(1) |
+| `reverse` | Invertir la playlist | O(n) |
+| `sort` | Ordenar (merge sort enlazado) | O(n log n) |
+| `next` / `prev` del nodo actual | Adelantar / retroceder | O(1) |
+
+### Ideas clave
+- **Adelantar y retroceder** solo siguen `current.next` o `current.prev`.
+- La playlist guarda un puntero al **nodo** que suena, no un número de posición. Por eso, si se reordena con drag and drop, la siguiente canción siempre sale del orden nuevo.
 - `move()` reutiliza el mismo nodo: lo desconecta y lo vuelve a enlazar en la nueva posición.
+- `reverse()` intercambia `prev` y `next` en cada nodo y luego cambia `head` por `tail`.
+- `sort()` divide la lista con un puntero lento y uno rápido, mezcla las mitades ordenadas y al final reconstruye los `prev`.
 - `getNodeAt()` recorre desde el extremo más cercano (cabeza o cola).
-
-## Desplegar en Vercel
-
-1. Sube el proyecto a un repositorio de GitHub.
-2. Entra a https://vercel.com, inicia sesión con GitHub y elige **Add New → Project**.
-3. Importa el repositorio. Vercel detecta Vite solo (Build: `npm run build`, Output: `dist`).
-4. En **Environment Variables** agrega `VITE_YOUTUBE_API_KEY` con tu clave.
-5. Presiona **Deploy** y comparte el enlace. Agrega esa URL a las restricciones de la clave en Google Cloud.
-
-Alternativa sin GitHub: `npx vercel` dentro de la carpeta del proyecto y seguir las preguntas.
