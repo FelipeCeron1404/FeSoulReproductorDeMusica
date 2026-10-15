@@ -32,6 +32,19 @@ export class YouTubeService {
   async search(query: string): Promise<YouTubeResult[]> {
     if (!this.isConfigured) throw new YouTubeError('Falta la clave de la API de YouTube.');
 
+    // Each search costs ~100 units of the free daily quota, so repeated queries are served from memory.
+    const cacheKey = query.trim().toLowerCase();
+    const cached = this.cache.get(cacheKey);
+    if (cached) return cached;
+    const results = await this.fetchResults(query);
+    this.cache.set(cacheKey, results);
+    return results;
+  }
+
+  private readonly cache = new Map<string, YouTubeResult[]>();
+
+  private async fetchResults(query: string): Promise<YouTubeResult[]> {
+
     const search = await this.get<SearchResponse>('search', {
       part: 'snippet',
       type: 'video',
