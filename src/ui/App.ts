@@ -851,7 +851,7 @@ export class App {
 
   private handleKeyboard(event: KeyboardEvent): void {
     const target = event.target as HTMLElement;
-    const isTyping = target.matches('input[type="search"], input[type="text"], textarea');
+    const isTyping = target.matches('input[type="search"], input[type="text"], textarea, select');
     if (isTyping || this.root.querySelector('dialog[open]')) return;
 
     // Alt + ↑/↓ moves the focused song (keyboard alternative to drag and drop).
