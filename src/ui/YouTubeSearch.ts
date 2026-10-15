@@ -42,7 +42,12 @@ export class YouTubeSearch {
       if (!button) return;
       const result = this.results[Number(button.dataset.index)];
       if (!result) return;
+      if (button.disabled) return;
       this.onAdd(result, button.dataset.ytAdd as AddPosition);
+      // Lock the three buttons of this result so it can't be added twice by accident.
+      button.closest('.yt-result__actions')?.querySelectorAll<HTMLButtonElement>('[data-yt-add]').forEach((other) => {
+        other.disabled = true;
+      });
       button.classList.add('is-added');
       button.textContent = '✓ Agregada';
     });
