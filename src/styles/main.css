@@ -1233,9 +1233,12 @@ body.is-sorting * {
   gap: 6px;
 }
 
-.yt-result__actions .is-added {
+.yt-result__actions .is-added,
+.yt-result__actions .is-added:disabled {
   background: var(--peach-soft);
   color: var(--ink);
+  opacity: 1;
+  cursor: default;
 }
 
 .yt-setup {
