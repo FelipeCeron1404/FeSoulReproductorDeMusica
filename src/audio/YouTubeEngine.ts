@@ -90,11 +90,15 @@ export class YouTubeEngine {
     this.container = container;
   }
 
+  private justLoaded = false;
+
   get isPlaying(): boolean {
     return this.playing;
   }
 
   get currentTime(): number {
+    // Right after loading a new video the iframe still reports the old position.
+    if (this.justLoaded) return 0;
     return this.player?.getCurrentTime() ?? 0;
   }
 
@@ -103,6 +107,7 @@ export class YouTubeEngine {
   }
 
   async load(videoId: string, autoplay: boolean): Promise<void> {
+    this.justLoaded = true;
     try {
       const player = await this.ensurePlayer();
       if (autoplay) player.loadVideoById(videoId);
@@ -122,6 +127,7 @@ export class YouTubeEngine {
   }
 
   seek(seconds: number): void {
+    this.justLoaded = false;
     this.player?.seekTo(seconds, true);
     this.onTimeUpdate(seconds, this.duration);
   }
@@ -172,6 +178,7 @@ export class YouTubeEngine {
 
   private handleState(state: number): void {
     if (state === STATE.PLAYING) {
+      this.justLoaded = false;
       this.setPlaying(true);
       const duration = this.duration;
       if (duration) this.onDurationKnown(duration);
